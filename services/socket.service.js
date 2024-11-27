@@ -35,7 +35,9 @@ export function setupSocketAPI(server) {
                 gUserCount = []
                 instructor = ''
                 mentorPosition = null
+                broadcast({ type: 'where-is-mentor', data: mentorPosition, userId: socket.id })
                 broadcast({ type: 'mentor-leave', data: mentorPosition, userId: socket.id })
+
             } else if (role === 'student') {
                 gUserCount = gUserCount.filter(id => id != socket.id)
                 console.log(gUserCount);
