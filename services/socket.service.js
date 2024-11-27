@@ -1,8 +1,9 @@
+import { log } from '../middlewares/logger.middleware.js'
 import { logger } from './logger.service.js'
 import { Server } from 'socket.io'
 
 var gIo = null
-var gUserCount = 0
+var gUserCount = []
 var instructor = ''
 
 export function setupSocketAPI(server) {
@@ -12,30 +13,44 @@ export function setupSocketAPI(server) {
         }
     })
     gIo.on('connection', socket => {
-        gUserCount++
         logger.info(`New connected socket [id: ${socket.id}]`)
         socket.on('disconnect', function () {
-
+            gUserCount.filter(id => id != socket.id)
             logger.info(`Socket disconnected [id: ${socket.id}]`)
-            if (socket.id === instructor) {
-                console.log('instructor left!');
-                broadcast({type:'mentor-leave',data:instructor,userId:socket.id})
 
+        })
+
+        socket.on('leave-room', role => {
+            console.log(role);
+            
+            if (role === 'instructor') {
+                gUserCount = []
+                instructor = ''
+                broadcast({ type: 'mentor-leave', data: instructor, userId: socket.id })
+            } else if(role === 'student') {
+                gUserCount = gUserCount.filter(id => id != socket.id)
+                console.log(gUserCount);
+                
+                broadcast({ type: 'student-count', data: gUserCount.length, userId: socket.id })
             }
-            gUserCount--
+
         })
 
         socket.on('my-current-role', role => {
             if (role === 'instructor' || role === 'student') return
-            if (gUserCount === 1) {
+
+            if (instructor === '') {
                 role = 'instructor'
                 instructor = socket.id
             } else {
+                gUserCount.push(socket.id)
                 role = 'student'
+                socket.emit('student-count', gUserCount.length)
+                broadcast({ type: 'student-count', data: gUserCount.length, userId: socket.id })
             }
             let data = {
                 role,
-                socketId: socket.id
+                socketId: socket.id,
             }
             socket.emit('assignRole', data)
 
