@@ -66,34 +66,5 @@ export async function removeCode(req, res) {
     }
 }
 
-export async function addCodeMsg(req, res) {
-    try {
-        const codeId = req.params.id
-        const msg = {
-            txt: req.body.txt,
-            by: loggedinUser
-        }
-        const savedMsg = await codeService.addcodeMsg(codeId, msg)
-        res.json(savedMsg)
-    } catch (err) {
-        logger.error('Failed to update code', err)
-        res.status(400).send({ err: 'Failed to update code' })
-
-    }
-}
-
-export async function removeCodeMsg(req, res) {
-    try {
-        const codeId = req.params.id
-        const { msgId } = req.params
-
-        const removedId = await codeService.removeCodeMsg(codeId, msgId)
-        res.send(removedId)
-    } catch (err) {
-        logger.error('Failed to remove code msg', err)
-        res.status(400).send({ err: 'Failed to remove code msg' })
-
-    }
-}
 
 

@@ -31,8 +31,8 @@ if (process.env.NODE_ENV === 'production') {
 
 
 // routes
-import { setupAsyncLocalStorage } from './middlewares/setupAls.middleware.js'
-app.all('*', setupAsyncLocalStorage)
+// import { setupAsyncLocalStorage } from './middlewares/setupAls.middleware.js'
+// app.all('*', setupAsyncLocalStorage)
 
 app.use('/api/code', codeRoutes)
 setupSocketAPI(server)

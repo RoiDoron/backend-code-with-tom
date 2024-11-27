@@ -5,6 +5,7 @@ import { Server } from 'socket.io'
 var gIo = null
 var gUserCount = []
 var instructor = ''
+var mentorPosition = null
 
 export function setupSocketAPI(server) {
     gIo = new Server(server, {
@@ -14,23 +15,31 @@ export function setupSocketAPI(server) {
     })
     gIo.on('connection', socket => {
         logger.info(`New connected socket [id: ${socket.id}]`)
+        socket.emit('where-is-mentor', mentorPosition)
         socket.on('disconnect', function () {
             gUserCount.filter(id => id != socket.id)
             logger.info(`Socket disconnected [id: ${socket.id}]`)
 
         })
 
+        socket.on('where-mentor', codeId => {
+            mentorPosition = codeId
+            broadcast({ type: 'where-is-mentor', data: codeId, userId: socket.id })
+
+        })
+
         socket.on('leave-room', role => {
             console.log(role);
-            
+
             if (role === 'instructor') {
                 gUserCount = []
                 instructor = ''
-                broadcast({ type: 'mentor-leave', data: instructor, userId: socket.id })
-            } else if(role === 'student') {
+                mentorPosition = null
+                broadcast({ type: 'mentor-leave', data: mentorPosition, userId: socket.id })
+            } else if (role === 'student') {
                 gUserCount = gUserCount.filter(id => id != socket.id)
                 console.log(gUserCount);
-                
+
                 broadcast({ type: 'student-count', data: gUserCount.length, userId: socket.id })
             }
 
