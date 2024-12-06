@@ -17,7 +17,17 @@ export function setupSocketAPI(server) {
         logger.info(`New connected socket [id: ${socket.id}]`)
         socket.emit('where-is-mentor', mentorPosition)
         socket.on('disconnect', function () {
-            gUserCount.filter(id => id != socket.id)
+            gUserCount = gUserCount.filter(id => id != socket.id)
+            console.log(gUserCount);
+
+            if (socket.id === instructor) {
+                gUserCount = []
+                instructor = ''
+                mentorPosition = null
+                broadcast({ type: 'where-is-mentor', data: mentorPosition, userId: socket.id })
+                broadcast({ type: 'mentor-leave', data: mentorPosition, userId: socket.id })
+
+            }
             logger.info(`Socket disconnected [id: ${socket.id}]`)
 
         })
@@ -40,20 +50,20 @@ export function setupSocketAPI(server) {
 
             } else if (role === 'student') {
                 gUserCount = gUserCount.filter(id => id != socket.id)
-                console.log(gUserCount);
-
+                
                 broadcast({ type: 'student-count', data: gUserCount.length, userId: socket.id })
             }
-
+            
         })
-
+        
         socket.on('my-current-role', role => {
             if (role === 'instructor' || role === 'student') return
-
+            
             if (instructor === '') {
                 role = 'instructor'
                 instructor = socket.id
             } else {
+                console.log(gUserCount);
                 gUserCount.push(socket.id)
                 role = 'student'
                 socket.emit('student-count', gUserCount.length)
